@@ -6,6 +6,7 @@ TARGET = OpenAuraSDK.bin
 TEMPLATE = app
 
 SOURCES += \
+    OpenAuraSDK/OpenAuraGUI.cpp \
     OpenAuraSDK/i2c_smbus.cpp \
     OpenAuraSDK/AuraController.cpp \
     OpenAuraSDK/OpenAuraSDK.cpp \
@@ -13,6 +14,7 @@ SOURCES += \
     OpenAuraSDK/OpenAuraSDKQtDialog.cpp
 
 HEADERS += \
+    OpenAuraSDK/OpenAuraSDK.h \
     OpenAuraSDK/i2c_smbus.h \
     OpenAuraSDK/i2c_smbus_linux.h \
     OpenAuraSDK/AuraController.h \

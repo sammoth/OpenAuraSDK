@@ -16,8 +16,6 @@
 
 #include <tchar.h>
 #include <regex>
-#include "OpenAuraSDKDialog.h"
-#include "I2CDetectDialog.h"
 #include "i2c_smbus_piix4.h"
 #include "i2c_smbus_i801.h"
 #include "i2c_smbus_nuvoton_nct6793d.h"
@@ -27,16 +25,14 @@
 #pragma comment(lib, "inpout32.lib")
 #else /* WIN32 */
 
-#include "OpenAuraSDKQtDialog.h"
+#include <string>
+#include <string.h>
 #include "i2c_smbus_linux.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
 
 #endif /* WIN32 */
-
-std::vector<AuraController *> controllers;
-std::vector<i2c_smbus_interface *> busses;
 
 #ifdef WIN32
 /******************************************************************************************\
@@ -170,7 +166,7 @@ void DetectNuvotonI2CBusses()
 *                                                                                          *
 \******************************************************************************************/
 
-void DetectI2CBusses()
+void DetectI2CBusses(std::vector<i2c_smbus_interface *> *busses)
 {
     i2c_smbus_interface * bus;
     HRESULT hres;
@@ -199,13 +195,13 @@ void DetectI2CBusses()
             strcpy(bus->device_name, i["Description"].c_str());
             strcat(bus->device_name, " at 0x0B00");
             ((i2c_smbus_piix4 *)bus)->piix4_smba = 0x0B00;
-            busses.push_back(bus);
+            busses->push_back(bus);
 
             bus = new i2c_smbus_piix4();
             ((i2c_smbus_piix4 *)bus)->piix4_smba = 0x0B20;
             strcpy(bus->device_name, i["Description"].c_str());
             strcat(bus->device_name, " at 0x0B20");
-            busses.push_back(bus);
+            busses->push_back(bus);
         }
 
         // Intel SMBus controllers do show I/O resources in Device Manager
@@ -235,7 +231,7 @@ void DetectI2CBusses()
                 bus = new i2c_smbus_i801();
                 strcpy(bus->device_name, i["Description"].c_str());
                 ((i2c_smbus_i801 *)bus)->i801_smba = IORangeStart;
-                busses.push_back(bus);
+                busses->push_back(bus);
             }
         }
     }
@@ -256,7 +252,7 @@ void DetectI2CBusses()
 *                                                                                          *
 \******************************************************************************************/
 
-void DetectI2CBusses()
+void DetectI2CBusses(std::vector<i2c_smbus_interface *> *busses)
 {
     i2c_smbus_linux *       bus;
     char                    device_string[1024];
@@ -314,7 +310,7 @@ void DetectI2CBusses()
                     }
 
                     bus->handle = test_fd;
-                    busses.push_back(bus);
+                    busses->push_back(bus);
                 }
             }
         }
@@ -375,7 +371,7 @@ bool TestForAuraController(i2c_smbus_interface* bus, unsigned char address)
 *                                                                                          *
 \******************************************************************************************/
 
-void DetectAuraControllers()
+void DetectAuraControllers(std::vector<i2c_smbus_interface *> &busses, std::vector<AuraController *> *controllers)
 {
     AuraController* new_controller;
 
@@ -403,7 +399,7 @@ void DetectAuraControllers()
             if (TestForAuraController(busses[bus], 0x70 + slot))
             {
                 new_controller = new AuraController(busses[bus], 0x70 + slot);
-                controllers.push_back(new_controller);
+                controllers->push_back(new_controller);
             }
         }
 
@@ -411,28 +407,28 @@ void DetectAuraControllers()
         if (TestForAuraController(busses[bus], 0x40))
         {
             new_controller = new AuraController(busses[bus], 0x40);
-            controllers.push_back(new_controller);
+            controllers->push_back(new_controller);
         }
 
         // Check for Aura controller at 0x4E
         if (TestForAuraController(busses[bus], 0x4E))
         {
             new_controller = new AuraController(busses[bus], 0x4E);
-            controllers.push_back(new_controller);
+            controllers->push_back(new_controller);
         }
 
         // Check for Aura controller at 0x4F
         if (TestForAuraController(busses[bus], 0x4F))
         {
             new_controller = new AuraController(busses[bus], 0x4F);
-            controllers.push_back(new_controller);
+            controllers->push_back(new_controller);
         }
 
         // Check for Aura controller at 0x66
         if (TestForAuraController(busses[bus], 0x66))
         {
             new_controller = new AuraController(busses[bus], 0x66);
-            controllers.push_back(new_controller);
+            controllers->push_back(new_controller);
         }
     }
 
@@ -551,34 +547,3 @@ void DumpAuraRegisters(AuraController * controller)
     fclose(file);
 
 }   /* DumpAuraRegisters() */
-
-
-/******************************************************************************************\
-*                                                                                          *
-*   main                                                                                   *
-*                                                                                          *
-*       Main function.  Detects busses and Aura controllers, then opens the main window    *
-*                                                                                          *
-\******************************************************************************************/
-
-int main(int argc, char *argv[])
-{
-    DetectI2CBusses();
-
-    DetectAuraControllers();
-
-#if WIN32
-    OpenAuraSDKDialog dlg(busses, controllers);
-    dlg.DoModal();
-
-    return 0;
-
-#else
-    QApplication a(argc, argv);
-
-    Ui::OpenAuraSDKQtDialog dlg(busses, controllers);
-    dlg.show();
-
-    return a.exec();
-#endif
-}
