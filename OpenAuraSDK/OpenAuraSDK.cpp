@@ -107,7 +107,7 @@ int superio_inb(int ioreg, int reg)
 *                                                                                          *
 \******************************************************************************************/
 
-void DetectNuvotonI2CBusses()
+void DetectNuvotonI2CBusses(std::vector<i2c_smbus_interface*>* busses)
 {
     i2c_smbus_interface* bus;
     int sioaddr = 0x2E;
@@ -151,7 +151,7 @@ void DetectNuvotonI2CBusses()
             break;
         }
 
-        busses.push_back(bus);
+        busses->push_back(bus);
     }
 
 }   /* DetectNuvotonI2CBusses() */
@@ -237,7 +237,7 @@ void DetectI2CBusses(std::vector<i2c_smbus_interface *> *busses)
     }
 
     // Detect Nuvoton Super IO SMBus adapters
-    DetectNuvotonI2CBusses();
+    DetectNuvotonI2CBusses(busses);
 
 }   /* DetectI2CBusses() */
 

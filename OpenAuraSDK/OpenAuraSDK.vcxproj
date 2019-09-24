@@ -196,6 +196,7 @@
     <ClCompile Include="i2c_smbus_i801.cpp" />
     <ClCompile Include="i2c_smbus_nuvoton_nct6793d.cpp" />
     <ClCompile Include="i2c_smbus_piix4.cpp" />
+    <ClCompile Include="OpenAuraGUI.cpp" />
     <ClCompile Include="OpenAuraSDKDialog.cpp" />
     <ClCompile Include="wmi.cpp" />
     <ClCompile Include="OpenAuraSDK.cpp" />
